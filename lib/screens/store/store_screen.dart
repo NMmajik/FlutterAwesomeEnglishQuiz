@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
 import 'package:flutter_toeic_quiz/database/firebase/firebase_api.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/book_sqlite.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/toeic_book.dart';
 import 'package:flutter_toeic_quiz/screens/store/components/book_store_item_widget.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -67,9 +67,9 @@ class _StoreScreenState extends State<StoreScreen> {
               mainAxisSpacing: kPaddingDefault,
               crossAxisSpacing: kPaddingDefault * 2),
           itemBuilder: (context, index) {
-            final BookSqlite bookSqlites = BookSqlite.fromJson(json[index]);
+            final ToeicBook toeicBook = ToeicBook.fromMap(json[index]);
             return BookStoreItemWidget(
-              bookInfo: bookSqlites,
+              toeicBook: toeicBook,
             );
           }),
     );

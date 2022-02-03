@@ -5,11 +5,16 @@ import 'package:flutter_toeic_quiz/screens/favorite/favorite_screen.dart';
 import 'package:flutter_toeic_quiz/screens/more/more_screen.dart';
 import 'package:flutter_toeic_quiz/screens/store/store_screen.dart';
 
+import 'database/local/book_hive_api.dart';
+import 'database/local/test_hive_api.dart';
 import 'screens/home/home_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp();
+  await BookHiveApi.instance.initHive();
+  await BookHiveApi.instance.openBox();
+  await TestHiveApi.instance.openBox();
   runApp(const QuizApp());
 }
 
@@ -35,6 +40,7 @@ class _QuizAppState extends State<QuizApp> {
     // TODO: implement dispose
     super.dispose();
     _pageController.dispose();
+    BookHiveApi.instance.closeHive();
   }
 
   @override

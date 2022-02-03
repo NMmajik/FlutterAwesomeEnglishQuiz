@@ -1,17 +1,24 @@
 import 'dart:ffi';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
 
 class AudioController extends StatefulWidget {
-  const AudioController({
+  AudioController({
     Key? key,
     this.durationTime = 70,
     required this.changeToDurationCallBack,
+    required this.playCallBack,
+    required this.pauseCallBack,
+    required this.audioPlayer,
   }) : super(key: key);
 
-  final int durationTime;
+  int durationTime;
   final Function(double timestamp)? changeToDurationCallBack;
+  final Function() playCallBack;
+  final Function() pauseCallBack;
+  final AssetsAudioPlayer audioPlayer;
 
   String coverFormatTime(int value) {
     int min = (value / 60).toInt();
@@ -24,9 +31,33 @@ class AudioController extends StatefulWidget {
 }
 
 class _AudioControllerState extends State<AudioController> {
+  bool sliderIsSliding = false;
   double _currentDuration = 1.0; // for both text and slider
   double _currentSliderValue = 1.0; // just for slider for slide only
-  bool isPlaying = false;
+  bool isPlaying = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget.audioPlayer.currentPosition.listen((positionValue) {
+      setState(() {
+        _currentDuration = positionValue.inSeconds.toDouble();
+        if (!sliderIsSliding) _currentSliderValue = _currentDuration;
+      });
+    });
+    //durationTime = (widget.audioPlayer.current.value as Playing).du
+    widget.audioPlayer.current.listen((playingAudio) {
+      widget.durationTime = playingAudio!.audio.duration.inSeconds;
+    });
+
+    widget.audioPlayer.isPlaying.listen((event) {
+      setState(() {
+        isPlaying = event;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var brightness = MediaQuery.of(context).platformBrightness;
@@ -63,6 +94,10 @@ class _AudioControllerState extends State<AudioController> {
                   padding: EdgeInsets.all(kPaddingIconButton),
                   constraints: BoxConstraints(),
                   onPressed: () {
+                    if (isPlaying)
+                      widget.pauseCallBack();
+                    else
+                      widget.playCallBack();
                     setState(() {
                       isPlaying = !isPlaying;
                     });
@@ -95,6 +130,7 @@ class _AudioControllerState extends State<AudioController> {
                   ),
                 ),
                 SizedBox(width: 6.0),
+                //Text(widget.coverFormatTime(_currentDuration.toInt())),
                 Text(widget.coverFormatTime(_currentDuration.toInt())),
               ],
             ),
@@ -102,12 +138,13 @@ class _AudioControllerState extends State<AudioController> {
               child: SliderTheme(
                 data: SliderThemeData(
                     //thumbColor: Colors.green,
-
                     trackShape: RectangularSliderTrackShape(),
                     activeTrackColor: kSliderActiveColor,
                     inactiveTrackColor: kSliderInactiveColor,
                     thumbColor: kSliderActiveColor,
-                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8)),
+                    inactiveTickMarkColor: Colors.transparent,
+                    activeTickMarkColor: Colors.transparent,
+                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7)),
                 child: Slider(
                   value: _currentSliderValue,
                   label: widget.coverFormatTime(_currentSliderValue.toInt()),
@@ -115,11 +152,13 @@ class _AudioControllerState extends State<AudioController> {
                   min: 0.0,
                   max: widget.durationTime.toDouble(),
                   onChanged: (val) {
+                    sliderIsSliding = true;
                     setState(() {
                       _currentSliderValue = val;
                     });
                   },
                   onChangeEnd: (val) {
+                    sliderIsSliding = false;
                     setState(() {
                       _currentDuration = val;
                     });

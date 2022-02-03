@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
 import 'package:flutter_toeic_quiz/database/firebase/firebase_api.dart';
 import 'package:flutter_toeic_quiz/database/firebase/firebase_file.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/test_sqlite.dart';
+import 'package:flutter_toeic_quiz/database/local/test_hive_api.dart';
+import 'package:flutter_toeic_quiz/models/test_detail/toeic_test.dart';
 
 enum DownloadStatus {
   notDownloaded,
@@ -23,15 +26,18 @@ abstract class DownloadController implements ChangeNotifier {
 
 class DataBaseDownloadController extends DownloadController
     with ChangeNotifier {
-  DataBaseDownloadController({
-    DownloadStatus downloadStatus = DownloadStatus.notDownloaded,
-    double progress = 0.0,
-    required this.resourceUrl,
-    required VoidCallback onOpenDownload,
-  })  : _downloadStatus = downloadStatus,
+  DataBaseDownloadController(
+      {DownloadStatus downloadStatus = DownloadStatus.notDownloaded,
+      double progress = 0.0,
+      required this.resourceUrl,
+      required this.testBoxId,
+      required VoidCallback onOpenDownload,
+      test})
+      : _downloadStatus = downloadStatus,
         _progress = progress,
         _onOpenDownload = onOpenDownload;
 
+  String testBoxId;
   String resourceUrl;
   DownloadStatus _downloadStatus;
   @override
@@ -58,11 +64,10 @@ class DataBaseDownloadController extends DownloadController
     _downloadStatus = DownloadStatus.fetchingDownload;
     notifyListeners();
 
-    // Wait a second to simulate fetch time.
-    //await Future<void>.delayed(const Duration(seconds: 1));
-
-    List<FirebaseFile> futureFiles =
+    List<FirebaseFile> futureAudioFiles =
         await FirebaseApi.listAllFile("$resourceUrl/audios");
+    List<FirebaseFile> futurePictureFiles =
+        await FirebaseApi.listAllFile("$resourceUrl/pictures");
     // If the user chose to cancel the download, stop the simulation.
     if (!_isDownloading) {
       return;
@@ -72,41 +77,47 @@ class DataBaseDownloadController extends DownloadController
     _downloadStatus = DownloadStatus.downloading;
     notifyListeners();
 
-    int count = 0;
-    for (final file in futureFiles) {
+    double count = 0,
+        allFileCount = futureAudioFiles.length.toDouble() +
+            futurePictureFiles.length.toDouble();
+    for (final file in futureAudioFiles) {
       await FirebaseApi.downloadFile(file.ref);
-      _progress = count.toDouble() / futureFiles.length.toDouble();
+      _progress = count / allFileCount;
       count++;
       notifyListeners();
-    }
-
-/*
-    const downloadProgressStops = [0.0, 0.15, 0.45, 0.80, 1.0];
-    for (final stop in downloadProgressStops) {
-      // Wait a second to simulate varying download speeds.
-      await Future<void>.delayed(const Duration(seconds: 1));
-
-      // If the user chose to cancel the download, stop the simulation.
       if (!_isDownloading) {
         return;
       }
+    }
 
-      // Update the download progress.
-      _progress = stop;
+    for (final file in futurePictureFiles) {
+      await FirebaseApi.downloadFile(file.ref);
+      _progress = count / allFileCount;
+      count++;
       notifyListeners();
-    } */
-
-    // Wait a second to simulate a final delay.
-    await Future<void>.delayed(const Duration(seconds: 1));
+      if (!_isDownloading) {
+        return;
+      }
+    }
 
     // If the user chose to cancel the download, stop the simulation.
     if (!_isDownloading) {
       return;
     }
 
+    FirebaseFile contentFile =
+        await FirebaseApi.getDownloadFileFromUrl("$resourceUrl/content.json");
+    Uint8List? downloadedData = await contentFile.ref.getData();
+    String jsonData = utf8.decode(downloadedData!);
+    // save info to database
+    ToeicTest toeicTest = ToeicTest.fromJson(jsonData);
+    await TestHiveApi.instance
+        .addTestToDB(testId: testBoxId, toeicTest: toeicTest);
+
     // Shift to the downloaded state, completing the simulation.
     _downloadStatus = DownloadStatus.downloaded;
     _isDownloading = false;
+
     notifyListeners();
   }
 

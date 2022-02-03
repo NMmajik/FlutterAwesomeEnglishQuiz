@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/database/local/books_sqlite_api.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/book_sqlite.dart';
+import 'package:flutter_toeic_quiz/database/local/book_hive_api.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/toeic_book.dart';
 
 class BookDetailScreen extends StatefulWidget {
   BookDetailScreen({
     Key? key,
-    required this.bookInfo,
+    required this.toeicBook,
     required this.bookCoverLink,
     required this.bought,
   }) : super(key: key);
-
-  BookSqlite bookInfo;
+  ToeicBook toeicBook;
   String bookCoverLink;
   bool bought;
 
@@ -20,6 +19,15 @@ class BookDetailScreen extends StatefulWidget {
 }
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
+  void buyTheBook() {
+    //BooksSqliteApi.instance.create(widget.bookInfo);
+    //BooksSqliteApi.instance.createRaw(widget.rawJsonData);
+    BookHiveApi.instance.addBookToDB(widget.toeicBook);
+    setState(() {
+      widget.bought = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -41,7 +49,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: Container(
                       child: Hero(
-                        tag: 'Book_${widget.bookInfo.id}',
+                        tag: 'Book_${widget.toeicBook.id}',
                         child: Image.network(
                           widget.bookCoverLink,
                           fit: BoxFit.cover,
@@ -54,25 +62,25 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${widget.bookInfo.title}',
+                        '${widget.toeicBook.title}',
                         style: Theme.of(context).textTheme.headline3,
                       ),
                       SizedBox(height: 4.0),
                       Text(
-                        '${widget.bookInfo.des}',
+                        '${widget.toeicBook.des}',
                         style: Theme.of(context).textTheme.headline4,
                       ),
                       SizedBox(height: 4.0),
                       Text(
-                        '${widget.bookInfo.author}',
+                        '${widget.toeicBook.author}',
                         style: TextStyle(
                             color: Color(0xff2a9d8f),
                             fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 20.0),
                       Text('Print List Price: 20.000 đ'),
-                      Text('Price: ${widget.bookInfo.price} đ'),
-                      Text('You Save: ${20000 - widget.bookInfo.price!} đ'),
+                      Text('Price: ${widget.toeicBook.price} đ'),
+                      Text('You Save: ${20000 - widget.toeicBook.price} đ'),
                     ],
                   ),
                 ],
@@ -113,13 +121,5 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ),
       ),
     );
-  }
-
-  void buyTheBook() {
-    BooksSqliteApi.instance.create(widget.bookInfo);
-    //BooksSqliteApi.instance.createRaw(widget.rawJsonData);
-    setState(() {
-      widget.bought = true;
-    });
   }
 }

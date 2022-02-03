@@ -1,38 +1,27 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/book_sqlite.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/test_sqlite.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/test_info.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/toeic_book.dart';
 import 'package:flutter_toeic_quiz/screens/book/test_item.dart';
 
 class BookScreen extends StatelessWidget {
-  BookScreen({Key? key, required this.bookInfo}) : super(key: key);
+  BookScreen({Key? key, required this.toeicBook}) : super(key: key);
 
-  BookSqlite bookInfo;
-  List<TestSqlite> listTest = [];
-
-  void loadListTest() {
-    List<dynamic> jsonTests = jsonDecode(bookInfo.test_detail_raw);
-    listTest.clear();
-    for (dynamic test in jsonTests) {
-      listTest.add(TestSqlite.fromJson(test));
-    }
-  }
+  ToeicBook toeicBook;
 
   @override
   Widget build(BuildContext context) {
-    loadListTest();
     final List<TestItem> testItems = [];
-    for (TestSqlite item in listTest) {
+    for (TestInfo item in toeicBook.testInfos) {
       testItems.add(TestItem(
-        resourceUrl: item.resource_url,
+        resourceUrl: item.resourceUrl,
         title: item.title,
-        questionNumber: item.question_number,
-        dowloaded: item.downloaded!,
+        questionNumber: item.questionNumber,
+        dowloaded: item.downloaded,
+        //dowloaded: true,
         size: item.size,
         onProgress: item.score != -1,
-        actualScore: item.score!,
+        actualScore: item.score,
+        testBoxId: item.boxId!,
       ));
     }
 

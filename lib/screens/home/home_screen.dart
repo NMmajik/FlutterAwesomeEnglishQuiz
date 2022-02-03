@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/database/local/books_sqlite_api.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/book_sqlite.dart';
+import 'package:flutter_toeic_quiz/database/local/book_hive_api.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/toeic_book.dart';
 import 'package:flutter_toeic_quiz/screens/home/book_item.dart';
 import 'package:flutter_toeic_quiz/screens/store/store_screen.dart';
 
@@ -24,12 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> updateUI() async {
-    List<BookSqlite> listBookItem =
-        await BooksSqliteApi.instance.readAllDbBookItem();
+    List<ToeicBook> toeicBooks = BookHiveApi.instance.getAll();
 
     bookItems.clear();
-    for (var bookItem in listBookItem) {
-      bookItems.add(BookItem(bookInfo: bookItem));
+    for (var toeicBook in toeicBooks) {
+      bookItems.add(BookItem(toeicBook: toeicBook));
     }
     setState(() {
       listItemIsUpdated = true;

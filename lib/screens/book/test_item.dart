@@ -14,6 +14,7 @@ class TestItem extends StatefulWidget {
     this.onProgress = false,
     this.actualScore = 560,
     this.size = "",
+    required this.testBoxId,
     required this.resourceUrl,
     required this.questionNumber,
     required this.title,
@@ -26,6 +27,7 @@ class TestItem extends StatefulWidget {
   final int questionNumber;
   final String size;
   final String resourceUrl;
+  final String testBoxId;
 
   @override
   State<TestItem> createState() => _TestItemState();
@@ -43,6 +45,7 @@ class _TestItemState extends State<TestItem> {
       downloadStatus: widget.dowloaded
           ? DownloadStatus.downloaded
           : DownloadStatus.notDownloaded,
+      testBoxId: widget.testBoxId,
     );
   }
 
@@ -50,7 +53,9 @@ class _TestItemState extends State<TestItem> {
     Navigator.push(
         context,
         CupertinoPageRoute(
-          builder: (context) => TestScreen(),
+          builder: (context) => TestScreen(
+            testBoxId: widget.testBoxId,
+          ),
         ));
   }
 

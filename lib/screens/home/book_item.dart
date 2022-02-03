@@ -1,16 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/database/local/utils/book_sqlite.dart';
+import 'package:flutter_toeic_quiz/models/book_detail/toeic_book.dart';
 import 'package:flutter_toeic_quiz/screens/book/book_screen.dart';
 
 class BookItem extends StatelessWidget {
   BookItem({
     Key? key,
-    required this.bookInfo,
+    required this.toeicBook,
   }) : super(key: key);
 
-  BookSqlite bookInfo;
+  ToeicBook toeicBook;
   final planetCard = new Container(
     height: 124.0,
     margin: new EdgeInsets.only(left: 46.0),
@@ -35,7 +35,7 @@ class BookItem extends StatelessWidget {
         Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => BookScreen(bookInfo: bookInfo),
+              builder: (context) => BookScreen(toeicBook: toeicBook),
             ));
       },
       child: Container(
@@ -81,11 +81,11 @@ class BookItem extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('${bookInfo.title}',
+                                      Text('${toeicBook.title}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyText1),
-                                      Text('${bookInfo.des}',
+                                      Text('${toeicBook.des}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyText2),

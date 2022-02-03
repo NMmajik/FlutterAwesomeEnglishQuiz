@@ -1,21 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/models/quiz_brain.dart';
-import 'package:flutter_toeic_quiz/screens/Part5/components/answer_sheet_item.dart';
+import 'package:flutter_toeic_quiz/models/quiz_brain/quiz_brain_part_one.dart';
+import 'package:flutter_toeic_quiz/utils/media_player.dart';
 import 'package:flutter_toeic_quiz/widgets/answer_board.dart';
+import 'package:flutter_toeic_quiz/widgets/answer_sheet_item.dart';
 import 'package:flutter_toeic_quiz/widgets/audio_board.dart';
 import 'package:flutter_toeic_quiz/widgets/bottom_controller.dart';
 
-QuizBrain quizBrain = QuizBrain();
+QuizBrainPartOne quizBrain = QuizBrainPartOne();
 
-class PartFiveScreen extends StatefulWidget {
-  const PartFiveScreen({Key? key}) : super(key: key);
+class PartOneScreen extends StatefulWidget {
+  const PartOneScreen({Key? key}) : super(key: key);
 
   @override
-  State<PartFiveScreen> createState() => _PartFiveScreenState();
+  State<PartOneScreen> createState() => _PartOneScreenState();
 }
 
-class _PartFiveScreenState extends State<PartFiveScreen> {
+class _PartOneScreenState extends State<PartOneScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    MediaPlayer.instance.playLocal(quizBrain.getQuestionInfo().audioLocalUrl);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    MediaPlayer.instance.stop();
+  }
+
   @override
   Widget build(BuildContext context) {
     var brightness = MediaQuery.of(context).platformBrightness;
@@ -29,25 +46,25 @@ class _PartFiveScreenState extends State<PartFiveScreen> {
               },
               icon: Icon(Icons.format_list_numbered_outlined))
         ],
-        title: Text('Question: 1/32'),
+        title: Text(
+            'Question: ${quizBrain.currentQuestionNumber}/${quizBrain.totalQuestionNumber}'),
       ),
       body: Column(
         children: [
           LinearProgressIndicator(
-              //value: 0.5,
-              ),
+            value:
+                quizBrain.currentQuestionNumber / quizBrain.totalQuestionNumber,
+          ),
           Expanded(
             child: Container(
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  //'152: \nWhy is the speaker calling?',
-                  '${quizBrain.getQuestionInfo().number}.\n${quizBrain.getQuestionInfo().questionStr}',
-                  style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w400,
-                      color: isDarkMode ? Colors.white : Colors.black),
+                child: Center(
+                  child: Image.file(
+                    File(quizBrain.getQuestionInfo().pictureLocalUrl),
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
@@ -64,7 +81,7 @@ class _PartFiveScreenState extends State<PartFiveScreen> {
                   : -1,
               selectedAns: quizBrain.getQuestionInfo().selectedAns,
               selectChanged: (value) {
-                quizBrain.getQuestionInfo().selectedAns = value;
+                quizBrain.setSelectedAnswer(value);
               },
             ),
             // child: AnswerBoard(
@@ -75,22 +92,38 @@ class _PartFiveScreenState extends State<PartFiveScreen> {
             // ),
           ),
           AudioController(
-            changeToDurationCallBack: (timestamp) {},
+            //durationTime: MediaPlayer.instance.getDurationTime(),
+            changeToDurationCallBack: (timestamp) {
+              MediaPlayer.instance.seekTo(seconds: timestamp.toInt());
+            },
+            playCallBack: () {
+              MediaPlayer.instance.resume();
+            },
+            pauseCallBack: () {
+              MediaPlayer.instance.pause();
+            },
+            audioPlayer: MediaPlayer.instance.audioPlayer,
           ),
           BottomController(
             prePressed: () {
               setState(() {
-                quizBrain.preQuestion();
+                if (quizBrain.preQuestion()) {
+                  MediaPlayer.instance
+                      .playLocal(quizBrain.getQuestionInfo().audioLocalUrl);
+                }
               });
             },
             nextPressed: () {
               setState(() {
-                quizBrain.nextQuestion();
+                if (quizBrain.nextQuestion()) {
+                  MediaPlayer.instance
+                      .playLocal(quizBrain.getQuestionInfo().audioLocalUrl);
+                }
               });
             },
             checkAnsPressed: () {
               setState(() {
-                quizBrain.getQuestionInfo().ansChecked = true;
+                quizBrain.doCheckAnswer();
               });
             },
           ),

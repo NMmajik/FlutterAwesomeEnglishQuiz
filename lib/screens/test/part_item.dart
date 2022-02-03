@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_toeic_quiz/constants.dart';
-import 'package:flutter_toeic_quiz/screens/Part5/part_five_screen.dart';
+import 'package:flutter_toeic_quiz/screens/part_screens/part_one/part_one_screen.dart';
 import 'package:flutter_toeic_quiz/widgets/rounded_botton.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -39,23 +39,24 @@ class PartItem extends StatelessWidget {
     Key? key,
     required this.partNumber,
     this.correctAns = 5,
-    this.numQuestion,
+    this.totalQuestions,
   }) : super(key: key);
 
   int partNumber;
-  int? numQuestion;
+  int? totalQuestions;
   int correctAns;
 
   @override
   Widget build(BuildContext context) {
-    numQuestion ??= numberQuestionDefault[partNumber - 1];
-    double correctPercent = (correctAns * 100 / numQuestion!).toDouble() / 100;
+    totalQuestions ??= numberQuestionDefault[partNumber - 1];
+    double correctPercent =
+        (correctAns * 100 / totalQuestions!).toDouble() / 100;
     return GestureDetector(
       onTap: () {
         Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => PartFiveScreen(),
+              builder: (context) => PartOneScreen(),
             ));
       },
       child: Card(
@@ -89,9 +90,9 @@ class PartItem extends StatelessWidget {
                               Row(
                                 children: [
                                   Text(
-                                      numQuestion! < 10
-                                          ? '0$numQuestion'
-                                          : '$numQuestion',
+                                      totalQuestions! < 10
+                                          ? '0$totalQuestions'
+                                          : '$totalQuestions',
                                       style: TextStyle(
                                           fontSize: 15.0,
                                           color: kHighlightColor,

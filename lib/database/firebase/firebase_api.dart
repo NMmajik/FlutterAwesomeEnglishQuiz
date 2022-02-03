@@ -36,6 +36,13 @@ class FirebaseApi {
     return await ref.getDownloadURL();
   }
 
+  static Future<FirebaseFile> getDownloadFileFromUrl(String filePath) async {
+    final ref = FirebaseStorage.instance.ref(filePath);
+    String url = await ref.getDownloadURL();
+    print('getDownloadFileFromUrl: url: $url');
+    return FirebaseFile(name: ref.name, url: url, ref: ref);
+  }
+
   static Future<List<FirebaseFile>> listAllFolder(String path) async {
     final ref = FirebaseStorage.instance.ref(path);
     final result = await ref.listAll();
@@ -65,6 +72,10 @@ class FirebaseApi {
     print('downloadFile() save local url: $urlFile');
     print('downloadFile() full path: ${ref.fullPath}');
     final file = File(urlFile);
+    if (await File(urlFile).exists()) {
+      print('downloadFile file already exits: $urlFile');
+      return;
+    }
     await _createFolder(urlFile.replaceAll(ref.name, ''));
     try {
       await ref.writeToFile(file);
